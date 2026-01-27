@@ -86,6 +86,12 @@ namespace DiscordBot.Modules.Economy
                 return true;
             }
 
+            if (content.StartsWith("!givemoney") || content.StartsWith("!addmoney"))
+            {
+                await HandleGiveMoneyCommand(message, guildId);
+                return true;
+            }
+
             return false;
         }
 
@@ -368,6 +374,60 @@ namespace DiscordBot.Modules.Economy
             }
 
             await message.Channel.SendMessageAsync(embed: embed.Build());
+        }
+
+        private async Task HandleGiveMoneyCommand(SocketUserMessage message, ulong guildId)
+        {
+            // Check if user is admin
+            var guildUser = message.Author as SocketGuildUser;
+            if (guildUser == null || !guildUser.GuildPermissions.Administrator)
+            {
+                await message.Channel.SendMessageAsync("❌ Only administrators can give money!");
+                return;
+            }
+
+            var parts = message.Content.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            
+            // Check for user mention or ID
+            if (parts.Length < 3)
+            {
+                await message.Channel.SendMessageAsync("❌ Usage: `!givemoney @user <amount>` or `!givemoney <userid> <amount>`");
+                return;
+            }
+
+            // Parse amount
+            if (!long.TryParse(parts[2], out long amount) || amount <= 0)
+            {
+                await message.Channel.SendMessageAsync("❌ Invalid amount!");
+                return;
+            }
+
+            // Get target user
+            ulong targetUserId;
+            string targetUsername;
+
+            if (message.MentionedUsers.Count > 0)
+            {
+                var mentioned = message.MentionedUsers.First();
+                targetUserId = mentioned.Id;
+                targetUsername = mentioned.Username;
+            }
+            else if (ulong.TryParse(parts[1], out targetUserId))
+            {
+                var user = await Client!.GetUserAsync(targetUserId);
+                targetUsername = user?.Username ?? $"User {targetUserId}";
+            }
+            else
+            {
+                await message.Channel.SendMessageAsync("❌ Invalid user mention or ID!");
+                return;
+            }
+
+            // Give money
+            await _economyService!.AddBalanceAsync(guildId, targetUserId, amount);
+
+            await message.Channel.SendMessageAsync(
+                $"✅ Gave **{amount:N0}** {_economyService.CurrencyName} to {targetUsername} (ID: {targetUserId})!");
         }
     }
 }
