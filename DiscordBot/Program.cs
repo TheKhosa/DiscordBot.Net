@@ -1,12 +1,16 @@
 using Discord;
 using Discord.WebSocket;
 using DiscordBot;
+using DiscordBot.Modules;
+using DiscordBot.Services;
 using System.Text.Json;
 
 class Program
 {
     private DiscordSocketClient? _client;
     private AudioService? _audioService;
+    private GuildSettingsService? _guildSettings;
+    private ModuleManager? _moduleManager;
     private CommandHandler? _commandHandler;
 
     public static Task Main(string[] args) => new Program().MainAsync();
@@ -52,7 +56,19 @@ class Program
 
         _client = new DiscordSocketClient(config);
         _audioService = new AudioService();
-        _commandHandler = new CommandHandler(_client, _audioService);
+        _guildSettings = new GuildSettingsService();
+        
+        // Load guild settings
+        await _guildSettings.LoadAllSettingsAsync();
+
+        // Initialize module system
+        var services = new ServiceProvider(_audioService, _guildSettings);
+        _moduleManager = new ModuleManager(_client, services);
+        
+        // Auto-discover and register modules
+        await _moduleManager.DiscoverAndRegisterModulesAsync();
+
+        _commandHandler = new CommandHandler(_client, _audioService, _guildSettings, _moduleManager);
 
         _client.Log += LogAsync;
         _client.Ready += ReadyAsync;

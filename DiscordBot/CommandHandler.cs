@@ -1,5 +1,7 @@
 using Discord;
 using Discord.WebSocket;
+using DiscordBot.Modules;
+using DiscordBot.Services;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,14 +13,30 @@ namespace DiscordBot
     {
         private readonly DiscordSocketClient _client;
         private readonly AudioService _audioService;
+        private readonly GuildSettingsService _guildSettings;
+        private readonly ModuleManager _moduleManager;
         private readonly YouTubeService _youtubeService;
-        private readonly char _prefix = '!';
 
-        public CommandHandler(DiscordSocketClient client, AudioService audioService)
+        public CommandHandler(
+            DiscordSocketClient client, 
+            AudioService audioService, 
+            GuildSettingsService guildSettings,
+            ModuleManager moduleManager)
         {
             _client = client;
             _audioService = audioService;
+            _guildSettings = guildSettings;
+            _moduleManager = moduleManager;
             _youtubeService = new YouTubeService();
+        }
+
+        private string GetPrefix(ulong? guildId)
+        {
+            if (guildId == null)
+                return "!"; // Default prefix for DMs
+
+            var settings = _guildSettings.GetSettings(guildId.Value);
+            return settings.CommandPrefix;
         }
 
         public async Task HandleMessageAsync(SocketMessage messageParam)
@@ -27,8 +45,12 @@ namespace DiscordBot
             if (!(messageParam is SocketUserMessage message)) return;
             if (message.Author.IsBot) return;
 
+            // Get guild-specific prefix
+            var context = new SocketCommandContext(_client, message);
+            var prefix = GetPrefix(context.Guild?.Id);
+
             // Check if message starts with prefix
-            if (!message.Content.StartsWith(_prefix)) return;
+            if (!message.Content.StartsWith(prefix)) return;
 
             // Fire and forget to avoid blocking the gateway
             _ = Task.Run(async () => await ExecuteCommandAsync(message));
@@ -36,12 +58,18 @@ namespace DiscordBot
 
         private async Task ExecuteCommandAsync(SocketUserMessage message)
         {
-            int argPos = _prefix.ToString().Length;
             var context = new SocketCommandContext(_client, message);
+            var prefix = GetPrefix(context.Guild?.Id);
+            
+            int argPos = prefix.Length;
             var commandText = message.Content.Substring(argPos);
             var args = commandText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (args.Length == 0) return;
+
+            // First, try to handle message with modules
+            if (await _moduleManager.HandleMessageAsync(message))
+                return; // Module handled the message
 
             var command = args[0].ToLower();
 
@@ -83,7 +111,7 @@ namespace DiscordBot
                         await PurgeCommand(context, args.Skip(1).ToArray());
                         break;
                     default:
-                        await context.Channel.SendMessageAsync($"Unknown command. Use `{_prefix}help` for a list of commands.");
+                        await context.Channel.SendMessageAsync($"Unknown command. Use `{prefix}help` for a list of commands.");
                         break;
                 }
             }
@@ -96,25 +124,26 @@ namespace DiscordBot
 
         private async Task HelpCommand(SocketCommandContext context)
         {
+            var prefix = GetPrefix(context.Guild?.Id);
             var embed = new EmbedBuilder()
                 .WithTitle("🎵 Discord Bot Commands")
                 .WithColor(Color.Blue)
                 .WithDescription("Here are the available commands:")
                 .AddField("**Music Commands**", 
-                    $"`{_prefix}join` - Join your voice channel\n" +
-                    $"`{_prefix}leave` - Leave the voice channel\n" +
-                    $"`{_prefix}play <file/url>` - Play audio from file or YouTube/URL\n" +
-                    $"`{_prefix}queue` - Show the current queue\n" +
-                    $"`{_prefix}skip` - Skip the current track\n" +
-                    $"`{_prefix}pause` - Pause playback\n" +
-                    $"`{_prefix}resume` - Resume playback\n" +
-                    $"`{_prefix}volume <0-200>` - Set volume (100 = normal)")
+                    $"`{prefix}join` - Join your voice channel\n" +
+                    $"`{prefix}leave` - Leave the voice channel\n" +
+                    $"`{prefix}play <file/url>` - Play audio from file or YouTube/URL\n" +
+                    $"`{prefix}queue` - Show the current queue\n" +
+                    $"`{prefix}skip` - Skip the current track\n" +
+                    $"`{prefix}pause` - Pause playback\n" +
+                    $"`{prefix}resume` - Resume playback\n" +
+                    $"`{prefix}volume <0-200>` - Set volume (100 = normal)")
                 .AddField("**Moderation Commands**",
-                    $"`{_prefix}purge <count>` - Delete messages (requires Manage Messages permission)")
+                    $"`{prefix}purge <count>` - Delete messages (requires Manage Messages permission)")
                 .AddField("**Utility Commands**",
-                    $"`{_prefix}ping` - Check bot latency\n" +
-                    $"`{_prefix}help` - Show this help message")
-                .WithFooter($"Prefix: {_prefix}")
+                    $"`{prefix}ping` - Check bot latency\n" +
+                    $"`{prefix}help` - Show this help message")
+                .WithFooter($"Prefix: {prefix}")
                 .WithCurrentTimestamp()
                 .Build();
 
@@ -150,7 +179,8 @@ namespace DiscordBot
         {
             if (args.Length == 0)
             {
-                await context.Channel.SendMessageAsync($"❌ Usage: `{_prefix}play <file/url>`");
+                var cmdPrefix = GetPrefix(context.Guild?.Id);
+                await context.Channel.SendMessageAsync($"❌ Usage: `{cmdPrefix}play <file/url>`");
                 return;
             }
 
@@ -322,7 +352,8 @@ namespace DiscordBot
 
             if (args.Length == 0)
             {
-                await context.Channel.SendMessageAsync($"❌ Usage: `{_prefix}purge <count>`");
+                var cmdPrefix = GetPrefix(context.Guild?.Id);
+                await context.Channel.SendMessageAsync($"❌ Usage: `{cmdPrefix}purge <count>`");
                 return;
             }
 

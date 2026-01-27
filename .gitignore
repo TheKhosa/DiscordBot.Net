@@ -79,6 +79,13 @@ bld/
 config.json
 *.env
 
+# Module data directories
+GuildSettings/
+LevelingData/
+EconomyData/
+StatsData/
+CustomCommandsData/
+
 # Native libraries (we'll document how to get these)
 opus.dll
 libsodium.dll
