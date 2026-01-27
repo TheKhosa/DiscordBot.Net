@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Audio;
 using Discord.WebSocket;
+using NAudio.Wave;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -114,6 +115,21 @@ public class AudioService
                 {
                     Console.WriteLine($"Error playing track: {ex.Message}");
                 }
+                finally
+                {
+                    // Clean up downloaded file if it's a temp file
+                    try
+                    {
+                        if (track.Path.Contains(Path.GetTempPath()) && File.Exists(track.Path))
+                        {
+                            File.Delete(track.Path);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error deleting temp file: {ex.Message}");
+                    }
+                }
                 
                 state.CurrentTrack = null;
             }
@@ -126,46 +142,66 @@ public class AudioService
 
     private async Task PlayTrackAsync(GuildAudioState state, AudioTrack track)
     {
-        // Determine if path is a URL or local file
-        string inputArg = track.Path.StartsWith("http://") || track.Path.StartsWith("https://")
-            ? track.Path  // URL doesn't need quotes
-            : $"\"{track.Path}\"";  // Local file needs quotes
-
-        using var ffmpeg = Process.Start(new ProcessStartInfo
+        if (!File.Exists(track.Path))
         {
-            FileName = "ffmpeg",
-            Arguments = $"-hide_banner -loglevel panic -i {inputArg} -ac 2 -f s16le -ar 48000 -af \"volume={state.Volume}\" pipe:1",
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        });
-
-        if (ffmpeg == null) return;
-
-        using var output = ffmpeg.StandardOutput.BaseStream;
-        using var discord = state.AudioClient.CreatePCMStream(AudioApplication.Music);
-
-        var buffer = new byte[4096];
-        int bytesRead;
-
-        while ((bytesRead = await output.ReadAsync(buffer, 0, buffer.Length)) > 0)
-        {
-            if (state.SkipCurrent || state.CancellationTokenSource.Token.IsCancellationRequested)
-                break;
-
-            while (state.IsPaused)
-            {
-                await Task.Delay(100);
-                if (state.SkipCurrent) break;
-            }
-
-            await discord.WriteAsync(buffer, 0, bytesRead);
+            Console.WriteLine($"Audio file not found: {track.Path}");
+            return;
         }
 
-        await discord.FlushAsync();
-        
-        if (!ffmpeg.HasExited)
-            ffmpeg.Kill();
+        using var discord = state.AudioClient.CreatePCMStream(AudioApplication.Music);
+
+        try
+        {
+            // Open audio file with NAudio
+            using var audioFile = new AudioFileReader(track.Path);
+            
+            // Create resampler to convert to Discord's format (48kHz, 2 channels, 16-bit PCM)
+            var outFormat = new WaveFormat(48000, 16, 2);
+            using var resampler = new MediaFoundationResampler(audioFile, outFormat);
+            
+            // Buffer for reading from NAudio
+            var buffer = new byte[16384];
+            int bytesRead;
+
+            while ((bytesRead = resampler.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                if (state.SkipCurrent || state.CancellationTokenSource.Token.IsCancellationRequested)
+                    break;
+
+                if (!state.IsPaused)
+                {
+                    // Apply volume to PCM data (16-bit signed samples)
+                    if (state.Volume != 1.0f)
+                    {
+                        for (int i = 0; i < bytesRead - 1; i += 2)
+                        {
+                            // Read 16-bit sample (little-endian)
+                            short sample = (short)(buffer[i] | (buffer[i + 1] << 8));
+                            
+                            // Apply volume and clamp to prevent distortion
+                            sample = (short)Math.Clamp(sample * state.Volume, short.MinValue, short.MaxValue);
+                            
+                            // Write back
+                            buffer[i] = (byte)(sample & 0xFF);
+                            buffer[i + 1] = (byte)(sample >> 8);
+                        }
+                    }
+
+                    await discord.WriteAsync(buffer, 0, bytesRead);
+                }
+                else
+                {
+                    // Small delay when paused to reduce CPU usage
+                    await Task.Delay(20);
+                }
+            }
+
+            await discord.FlushAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during playback: {ex.Message}");
+        }
     }
 }
 

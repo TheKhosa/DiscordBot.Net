@@ -186,11 +186,11 @@ namespace DiscordBot
             else if (_youtubeService.IsSupportedUrl(path))
             {
                 // Send "processing" message
-                var processingMsg = await context.Channel.SendMessageAsync("🔄 Processing URL...");
+                var processingMsg = await context.Channel.SendMessageAsync("🔄 Downloading audio...");
 
                 try
                 {
-                    // Get video info
+                    // Get video info (for metadata)
                     var videoInfo = await _youtubeService.GetVideoInfoAsync(path);
                     if (videoInfo == null)
                     {
@@ -198,18 +198,18 @@ namespace DiscordBot
                         return;
                     }
 
-                    // Get audio stream URL
-                    var streamUrl = await _youtubeService.GetAudioStreamUrlAsync(path);
-                    if (streamUrl == null)
+                    // Download audio file
+                    var audioFilePath = await _youtubeService.DownloadAudioAsync(path);
+                    if (audioFilePath == null)
                     {
-                        await processingMsg.ModifyAsync(msg => msg.Content = "❌ Failed to get audio stream.");
+                        await processingMsg.ModifyAsync(msg => msg.Content = "❌ Failed to download audio.");
                         return;
                     }
 
-                    // Create track with stream URL
+                    // Create track with downloaded file path
                     var track = new AudioTrack
                     {
-                        Path = streamUrl,  // Use the direct stream URL
+                        Path = audioFilePath,  // Use the downloaded file path
                         Title = videoInfo.Title,
                         Requester = context.User.Username,
                         Duration = videoInfo.Duration

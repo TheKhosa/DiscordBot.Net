@@ -19,7 +19,19 @@ class Program
         string token;
         try
         {
-            var configJson = await File.ReadAllTextAsync("config.json");
+            // Look for config.json in the application's directory
+            var appDir = AppContext.BaseDirectory;
+            var configPath = Path.Combine(appDir, "config.json");
+            
+            if (!File.Exists(configPath))
+            {
+                Console.WriteLine($"Error: config.json not found at: {configPath}");
+                Console.WriteLine("Please create a config.json file with your bot token.");
+                Console.WriteLine("See config.example.json for the format.");
+                return;
+            }
+
+            var configJson = await File.ReadAllTextAsync(configPath);
             var configData = JsonDocument.Parse(configJson);
             token = configData.RootElement.GetProperty("BotToken").GetString() 
                 ?? throw new Exception("BotToken not found in config.json");

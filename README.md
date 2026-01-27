@@ -44,13 +44,12 @@ All commands use the `!` prefix.
 ### Prerequisites
 
 1. **.NET 10.0 SDK** - [Download](https://dotnet.microsoft.com/download)
-2. **FFmpeg** - Must be in PATH for audio processing
-   - Download: https://ffmpeg.org/download.html
-   - Windows: Add FFmpeg bin folder to PATH
-3. **yt-dlp** - For YouTube support
+2. **yt-dlp** - For YouTube audio downloads
    - Download: https://github.com/yt-dlp/yt-dlp/releases
    - Windows: Install via `winget install yt-dlp`
    - Or place `yt-dlp.exe` in PATH
+
+**Note:** FFmpeg is no longer required! Audio decoding is handled by NAudio (pure C# library).
 
 ### Discord.Net Patched Fork
 
@@ -140,16 +139,18 @@ User Command → CommandHandler → AudioService
                                      ↓
                               Queue Processor
                                      ↓
-                            FFmpeg → Discord Voice
+                            NAudio → Discord Voice
 ```
 
 ### YouTube Integration
 ```
 YouTube URL → YouTubeService (yt-dlp)
                     ↓
-            Video Metadata + Stream URL
+            Download MP3 + Video Metadata
                     ↓
-            AudioTrack → Queue → FFmpeg
+            AudioTrack → Queue → NAudio → Discord Voice
+                    ↓
+            Auto-cleanup after playback
 ```
 
 ### Non-Blocking Command Execution
@@ -161,14 +162,16 @@ YouTube URL → YouTubeService (yt-dlp)
 
 ### Dependencies
 - **Discord.Net** - Patched fork for voice support
+- **NAudio** - Pure C# audio library for decoding and resampling
 - **Newtonsoft.Json** - JSON serialization
 - **System.Text.Json** - Config file parsing
 
-### Audio Encoding
-- **Format:** PCM (s16le)
-- **Sample Rate:** 48000 Hz
-- **Channels:** 2 (stereo)
-- **Encoder:** FFmpeg with volume filter support
+### Audio Pipeline
+- **Input Formats:** MP3, WAV, FLAC, AAC, and more (via NAudio)
+- **Processing:** NAudio decodes and resamples to Discord's format
+- **Output Format:** PCM (s16le), 48000 Hz, 2 channels (stereo)
+- **Volume Control:** Applied in real-time to PCM samples
+- **No External Dependencies:** All audio processing is pure C#
 
 ### Voice Connection
 - **Encryption:** aead_xchacha20_poly1305_rtpsize
@@ -176,10 +179,11 @@ YouTube URL → YouTubeService (yt-dlp)
 - **Native Libraries:** opus.dll (audio encoding), libsodium.dll (encryption)
 
 ### YouTube Support
-- **Tool:** yt-dlp
+- **Tool:** yt-dlp (downloads audio files)
 - **Metadata:** Title, duration, uploader, thumbnail
-- **Quality:** Best available audio stream
+- **Quality:** Best available audio, converted to MP3
 - **Supported Sites:** YouTube, SoundCloud, and 1000+ other sites
+- **Cleanup:** Downloaded files automatically deleted after playback
 
 ## Troubleshooting
 

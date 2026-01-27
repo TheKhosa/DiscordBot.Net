@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -7,6 +8,13 @@ namespace DiscordBot
 {
     public class YouTubeService
     {
+        private readonly string _tempFolder;
+
+        public YouTubeService()
+        {
+            _tempFolder = Path.Combine(Path.GetTempPath(), "DiscordBot");
+            Directory.CreateDirectory(_tempFolder);
+        }
         public async Task<YouTubeVideo?> GetVideoInfoAsync(string url)
         {
             try
@@ -54,16 +62,20 @@ namespace DiscordBot
             }
         }
 
-        public async Task<string?> GetAudioStreamUrlAsync(string url)
+        public async Task<string?> DownloadAudioAsync(string url)
         {
             try
             {
+                // Generate unique filename
+                var filename = $"{Guid.NewGuid()}.mp3";
+                var outputPath = Path.Combine(_tempFolder, filename);
+
                 var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = "yt-dlp",
-                        Arguments = $"-f bestaudio --get-url --no-playlist \"{url}\"",
+                        Arguments = $"-f bestaudio --extract-audio --audio-format mp3 --no-playlist -o \"{outputPath}\" \"{url}\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false,
@@ -82,12 +94,45 @@ namespace DiscordBot
                     return null;
                 }
 
-                return output.Trim();
+                // Check if file was created
+                if (File.Exists(outputPath))
+                {
+                    return outputPath;
+                }
+
+                Console.WriteLine($"yt-dlp did not create output file: {outputPath}");
+                return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting audio stream: {ex.Message}");
+                Console.WriteLine($"Error downloading audio: {ex.Message}");
                 return null;
+            }
+        }
+
+        public void CleanupTempFiles()
+        {
+            try
+            {
+                if (Directory.Exists(_tempFolder))
+                {
+                    var files = Directory.GetFiles(_tempFolder);
+                    foreach (var file in files)
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch
+                        {
+                            // File might be in use, skip it
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error cleaning up temp files: {ex.Message}");
             }
         }
 
