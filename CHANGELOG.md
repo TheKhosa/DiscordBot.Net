@@ -1,5 +1,85 @@
 # Changelog
 
+## [v1.5.0] - Giveaways & Server Logging
+
+### Added - 2 Essential Server Modules
+
+- **Giveaways Module** - Host and manage giveaways
+  - Commands: `!giveaway`, `!gstart`, `!gend`, `!greroll`, `!glist`
+  - Automatic winner selection with random picking
+  - React with 🎉 to enter giveaways
+  - Support for multiple winners (1-20)
+  - Time-based endings (30s, 5m, 2h, 7d)
+  - Auto-end when time expires
+  - Reroll feature for new winners
+  - Entry tracking and management
+  - Completed giveaway history
+  - Admin-only management (Manage Server permission)
+
+- **Logging/Audit Module** - Comprehensive server event tracking
+  - Commands: `!setlog`, `!logconfig`
+  - **Message Logging:** Edits and deletes with before/after content
+  - **Member Logging:** Joins, leaves, nickname/role changes
+  - **Server Logging:** Channel/role create/update/delete
+  - **Voice Logging:** Join/leave/move/mute/deafen
+  - **Ban Logging:** User bans and unbans
+  - Separate channels for different log types
+  - Rich embeds with timestamps
+  - User avatars and mentions
+  - Account age tracking
+  - Full audit trail
+
+### Features Details
+
+**Giveaways:**
+- ✅ Automatic winner selection (random)
+- ✅ React-to-enter system (🎉 emoji)
+- ✅ Multiple winners support (1-20)
+- ✅ Flexible duration parsing
+- ✅ Auto-end with timer (checks every 30s)
+- ✅ Reroll feature for fairness
+- ✅ Entry tracking (add/remove on react)
+- ✅ List active giveaways
+- ✅ Stores 50 completed giveaways
+- ✅ Beautiful embed displays
+- ✅ Winner announcements with mentions
+
+**Logging:**
+- ✅ Message edits with before/after
+- ✅ Message deletes with content preservation
+- ✅ Member join/leave tracking
+- ✅ Nickname and role changes
+- ✅ Channel create/update/delete
+- ✅ Role create/update/delete
+- ✅ Voice activity monitoring
+- ✅ Ban/unban logging
+- ✅ Account age on join
+- ✅ Separate channels for log categories
+- ✅ Rich embeds with context
+- ✅ Timestamps on all events
+
+### Technical Details
+
+**New Files:**
+- `GiveawaysModule.cs` - Giveaway system (500+ lines)
+- `GiveawayData.cs` - Giveaway data models
+- `LoggingModule.cs` - Event logging (600+ lines)
+- `LoggingData.cs` - Logging configuration
+
+**Event-Driven:**
+- Reaction add/remove (giveaway entries)
+- 30-second timer for giveaway endings
+- 15+ Discord event subscriptions for logging
+
+**Features:**
+- 6+ new commands added
+- Persistent data storage per guild
+- Permission-based access
+- Automatic event processing
+- Real-time logging
+
+---
+
 ## [v1.4.0] - Voice TTS & Weather Features
 
 ### Added - 2 Feature-Rich Modules
@@ -230,12 +310,13 @@
 
 ## Statistics
 
-**Total Lines of Code:** 10,000+  
-**Total Commands:** 150+  
-**Total Modules:** 15  
+**Total Lines of Code:** 11,500+  
+**Total Commands:** 156+  
+**Total Modules:** 17  
 **Casino Games:** 6 (Roulette, Craps, High-Low, War, Blackjack, Poker)  
 **Gambling Games:** 4 (Coinflip, Dice, Slots, RPS)  
 **Total Games:** 10  
 **API Integrations:** 3 (ElevenLabs, Open-Meteo, DeckOfCards)  
-**Version:** 1.4.0  
+**Event Subscriptions:** 15+ (Reactions, Messages, Members, Channels, Roles, Voice)  
+**Version:** 1.5.0  
 **Status:** Production Ready ✅
