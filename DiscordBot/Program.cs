@@ -57,12 +57,13 @@ class Program
         _client = new DiscordSocketClient(config);
         _audioService = new AudioService();
         _guildSettings = new GuildSettingsService();
+        var youtubeService = new YouTubeService();
         
         // Load guild settings
         await _guildSettings.LoadAllSettingsAsync();
 
         // Initialize module system
-        var services = new ServiceProvider(_audioService, _guildSettings);
+        var services = new ServiceProvider(_audioService, _guildSettings, youtubeService);
         _moduleManager = new ModuleManager(_client, services);
         
         // Auto-discover and register modules

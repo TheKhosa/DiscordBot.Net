@@ -9,11 +9,13 @@ namespace DiscordBot.Services
     {
         private readonly AudioService _audioService;
         private readonly GuildSettingsService _guildSettings;
+        private readonly YouTubeService _youtubeService;
 
-        public ServiceProvider(AudioService audioService, GuildSettingsService guildSettings)
+        public ServiceProvider(AudioService audioService, GuildSettingsService guildSettings, YouTubeService youtubeService)
         {
             _audioService = audioService;
             _guildSettings = guildSettings;
+            _youtubeService = youtubeService;
         }
 
         public object? GetService(Type serviceType)
@@ -23,6 +25,9 @@ namespace DiscordBot.Services
             
             if (serviceType == typeof(GuildSettingsService))
                 return _guildSettings;
+            
+            if (serviceType == typeof(YouTubeService))
+                return _youtubeService;
 
             return null;
         }

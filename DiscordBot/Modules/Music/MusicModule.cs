@@ -25,8 +25,12 @@ namespace DiscordBot.Modules.Music
 
         public override Task InitializeAsync(DiscordSocketClient client, IServiceProvider services)
         {
+            Console.WriteLine($"[MusicModule.Initialize] Initializing...");
             _audioService = services.GetService(typeof(AudioService)) as AudioService;
             _youtubeService = services.GetService(typeof(YouTubeService)) as YouTubeService;
+            
+            Console.WriteLine($"[MusicModule.Initialize] AudioService: {(_audioService != null ? "OK" : "NULL")}");
+            Console.WriteLine($"[MusicModule.Initialize] YouTubeService: {(_youtubeService != null ? "OK" : "NULL")}");
             
             return base.InitializeAsync(client, services);
         }
@@ -166,12 +170,16 @@ namespace DiscordBot.Modules.Music
             }
 
             // Get video info
+            Console.WriteLine($"[MusicModule] About to get video info for: {videoUrl}");
             var videoInfo = await GetVideoInfo(videoUrl);
+            Console.WriteLine($"[MusicModule] GetVideoInfo returned: {(videoInfo != null ? "SUCCESS" : "NULL")}");
             if (videoInfo == null)
             {
+                Console.WriteLine($"[MusicModule] Failed to get video info - sending error message");
                 await message.Channel.SendMessageAsync("❌ Failed to get video information!");
                 return;
             }
+            Console.WriteLine($"[MusicModule] Video info: {videoInfo.Title}");
 
             // Download audio
             string? audioPath = null;
@@ -494,8 +502,19 @@ namespace DiscordBot.Modules.Music
 
         private async Task<YouTubeVideo?> GetVideoInfo(string url)
         {
-            if (_youtubeService == null) return null;
-            return await _youtubeService.GetVideoInfoAsync(url);
+            Console.WriteLine($"[MusicModule.GetVideoInfo] Called with url: {url}");
+            Console.WriteLine($"[MusicModule.GetVideoInfo] _youtubeService is null: {_youtubeService == null}");
+            
+            if (_youtubeService == null)
+            {
+                Console.WriteLine($"[MusicModule.GetVideoInfo] YouTubeService is null! Returning null.");
+                return null;
+            }
+            
+            Console.WriteLine($"[MusicModule.GetVideoInfo] Calling YouTubeService.GetVideoInfoAsync...");
+            var result = await _youtubeService.GetVideoInfoAsync(url);
+            Console.WriteLine($"[MusicModule.GetVideoInfo] Result: {(result != null ? "SUCCESS" : "NULL")}");
+            return result;
         }
 
         private string FormatDuration(TimeSpan duration)
