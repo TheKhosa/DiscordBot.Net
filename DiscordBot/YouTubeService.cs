@@ -19,6 +19,8 @@ namespace DiscordBot
         {
             try
             {
+                Console.WriteLine($"[YouTubeService] Getting video info for: {url}");
+                
                 var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
@@ -39,14 +41,22 @@ namespace DiscordBot
 
                 if (process.ExitCode != 0)
                 {
-                    Console.WriteLine($"yt-dlp error: {error}");
+                    Console.WriteLine($"[YouTubeService] yt-dlp exit code: {process.ExitCode}");
+                    Console.WriteLine($"[YouTubeService] yt-dlp error: {error}");
                     return null;
                 }
 
+                if (string.IsNullOrWhiteSpace(output))
+                {
+                    Console.WriteLine($"[YouTubeService] yt-dlp returned empty output");
+                    return null;
+                }
+
+                Console.WriteLine($"[YouTubeService] Parsing JSON response ({output.Length} bytes)");
                 var json = JsonDocument.Parse(output);
                 var root = json.RootElement;
 
-                return new YouTubeVideo
+                var video = new YouTubeVideo
                 {
                     Url = url,
                     Title = root.GetProperty("title").GetString() ?? "Unknown Title",
@@ -54,10 +64,14 @@ namespace DiscordBot
                     Uploader = root.GetProperty("uploader").GetString() ?? "Unknown",
                     Thumbnail = root.GetProperty("thumbnail").GetString() ?? ""
                 };
+
+                Console.WriteLine($"[YouTubeService] Successfully parsed: {video.Title} ({video.Duration})");
+                return video;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting video info: {ex.Message}");
+                Console.WriteLine($"[YouTubeService] Error getting video info: {ex.Message}");
+                Console.WriteLine($"[YouTubeService] Stack trace: {ex.StackTrace}");
                 return null;
             }
         }
