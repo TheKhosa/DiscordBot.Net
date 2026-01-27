@@ -1,5 +1,74 @@
 # Changelog
 
+## [v1.4.0] - Voice TTS & Weather Features
+
+### Added - 2 Feature-Rich Modules
+
+- **Voice/TTS Module** - ElevenLabs AI text-to-speech
+  - Commands: `!say`, `!tts`, `!voices`, `!previewvoice`, `!joinvoice`, `!leavevoice`
+  - 100+ natural-sounding AI voices
+  - Multiple languages and accents
+  - Smart audio caching for instant playback
+  - Queue integration with music bot
+  - Default voice: Rachel (nDJIICjR9zfJExIFeSCN)
+  - API Key: sk_62a928ae7d075434d6645f4b04a015a7bd34d19a3db95fec
+
+- **Weather Module** - Real-time weather via Open-Meteo API
+  - Commands: `!weather`, `!forecast`, `!hourly`, `!setlocation`
+  - Current weather with detailed metrics
+  - 7-day forecast with sunrise/sunset
+  - 24-hour hourly forecast
+  - Global coverage (any city worldwide)
+  - Save default location per user
+  - Temperature in Celsius & Fahrenheit
+  - Wind direction with arrows
+  - Weather condition emojis
+
+### Features Details
+
+**Voice/TTS:**
+- ✅ High-quality AI voice synthesis
+- ✅ 500 character limit per message
+- ✅ Cached audio for repeated phrases
+- ✅ Voice channel auto-join
+- ✅ Multiple voice options (Rachel, Clyde, Antoni, Bella, Josh, etc.)
+- ✅ Natural pauses and intonation
+- ✅ Queue-based playback
+
+**Weather:**
+- ✅ Current temperature and feels-like
+- ✅ Wind speed, direction, and arrow indicators
+- ✅ Humidity, cloud cover, precipitation
+- ✅ Air pressure and weather codes
+- ✅ Daily high/low temperatures
+- ✅ Precipitation probability
+- ✅ Sunrise and sunset times
+- ✅ Location geocoding
+- ✅ Per-user saved locations
+
+### Technical Details
+
+**New Files:**
+- `VoiceModule.cs` - ElevenLabs TTS integration (370+ lines)
+- `WeatherModule.cs` - Open-Meteo API wrapper (550+ lines)
+- `WeatherData.cs` - Weather data models
+- `VOICE_AND_WEATHER.md` - Comprehensive documentation
+
+**API Integrations:**
+- ElevenLabs v1 API (text-to-speech)
+- Open-Meteo API (weather forecasting)
+- Open-Meteo Geocoding API (location lookup)
+
+**Features:**
+- 10+ new commands added
+- Global weather coverage
+- Smart audio caching
+- No API key needed for weather
+- Natural voice synthesis
+- Real-time weather data
+
+---
+
 ## [v1.3.0] - Server Management & Community Features
 
 ### Added - 3 New Essential Modules
@@ -161,11 +230,12 @@
 
 ## Statistics
 
-**Total Lines of Code:** 9,000+  
-**Total Commands:** 140+  
-**Total Modules:** 13  
+**Total Lines of Code:** 10,000+  
+**Total Commands:** 150+  
+**Total Modules:** 15  
 **Casino Games:** 6 (Roulette, Craps, High-Low, War, Blackjack, Poker)  
 **Gambling Games:** 4 (Coinflip, Dice, Slots, RPS)  
 **Total Games:** 10  
-**Version:** 1.3.0  
+**API Integrations:** 3 (ElevenLabs, Open-Meteo, DeckOfCards)  
+**Version:** 1.4.0  
 **Status:** Production Ready ✅
