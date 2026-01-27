@@ -201,7 +201,7 @@ namespace DiscordBot.Modules.Music
                 .WithTitle("🎵 Added to Queue")
                 .WithDescription($"**[{videoInfo.Title}]({videoUrl})**")
                 .WithColor(Color.Green)
-                .AddField("Duration", videoInfo.Duration, inline: true)
+                .AddField("Duration", FormatDuration(videoInfo.Duration), inline: true)
                 .AddField("Requested by", message.Author.Mention, inline: true)
                 .WithThumbnailUrl(videoInfo.Thumbnail)
                 .WithFooter($"Watch on YouTube: {videoUrl}")
@@ -408,7 +408,7 @@ namespace DiscordBot.Modules.Music
                 .WithTitle("🎬 WATCH PARTY!")
                 .WithDescription($"**[{videoInfo.Title}]({url})**")
                 .WithColor(Color.Purple)
-                .AddField("📺 Video Duration", videoInfo.Duration, inline: true)
+                .AddField("📺 Video Duration", FormatDuration(videoInfo.Duration), inline: true)
                 .AddField("👤 Hosted by", message.Author.Mention, inline: true)
                 .WithThumbnailUrl(videoInfo.Thumbnail)
                 .WithImageUrl(videoInfo.Thumbnail);
@@ -492,46 +492,17 @@ namespace DiscordBot.Modules.Music
                 $"• [Musixmatch](https://www.musixmatch.com/search/{Uri.EscapeDataString(state.CurrentTrack.Title)})");
         }
 
-        private async Task<VideoInfo?> GetVideoInfo(string url)
+        private async Task<YouTubeVideo?> GetVideoInfo(string url)
         {
-            try
-            {
-                if (_youtubeService == null) return null;
+            if (_youtubeService == null) return null;
+            return await _youtubeService.GetVideoInfoAsync(url);
+        }
 
-                // Use yt-dlp to get video info
-                var process = new System.Diagnostics.Process
-                {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "yt-dlp",
-                        Arguments = $"--get-title --get-duration --get-thumbnail \"{url}\"",
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                var output = await process.StandardOutput.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                if (lines.Length >= 3)
-                {
-                    return new VideoInfo
-                    {
-                        Title = lines[0].Trim(),
-                        Duration = lines[1].Trim(),
-                        Thumbnail = lines[2].Trim()
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Music] Error getting video info: {ex.Message}");
-            }
-
-            return null;
+        private string FormatDuration(TimeSpan duration)
+        {
+            if (duration.TotalHours >= 1)
+                return $"{(int)duration.TotalHours}:{duration.Minutes:D2}:{duration.Seconds:D2}";
+            return $"{duration.Minutes}:{duration.Seconds:D2}";
         }
 
         private bool IsYouTubeUrl(string url)
@@ -568,13 +539,6 @@ namespace DiscordBot.Modules.Music
             else
                 return $"{(int)timeSpan.TotalSeconds}s";
         }
-    }
-
-    public class VideoInfo
-    {
-        public string Title { get; set; } = "";
-        public string Duration { get; set; } = "";
-        public string Thumbnail { get; set; } = "";
     }
 
     public class WatchParty
