@@ -1,5 +1,50 @@
 # Changelog
 
+## [v1.3.0] - Server Management & Community Features
+
+### Added - 3 New Essential Modules
+
+- **Moderation Module** - Complete server moderation toolkit
+  - Commands: `!warn`, `!warnings`, `!clearwarns`, `!kick`, `!ban`, `!unban`, `!mute`, `!unmute`, `!purge`, `!modlogs`
+  - Warning system with history tracking
+  - Timed mutes with automatic expiration
+  - Message purging (bulk delete)
+  - Full moderation action logging
+  - Permission-based access control
+
+- **Reaction Roles Module** - Self-assignable roles via reactions
+  - Commands: `!reactionrole`, `!rr`, `!listreactionroles`, `!removereactionrole`
+  - Automatic role assignment on reaction add
+  - Automatic role removal on reaction remove
+  - Support for both standard and custom emojis
+  - Multiple roles per message
+
+- **Welcome & Goodbye Module** - Custom member messages
+  - Commands: `!setwelcome`, `!setgoodbye`, `!testwelcome`, `!welcomeinfo`
+  - Customizable welcome messages for new members
+  - Customizable goodbye messages for leaving members
+  - Placeholders: {user}, {username}, {server}, {membercount}
+  - Per-channel configuration
+
+### Technical Details
+**New Files:**
+- `ModerationModule.cs` - Moderation commands and actions (700+ lines)
+- `ModerationData.cs` - Warning and mute data models
+- `ReactionRolesModule.cs` - Reaction role system (400+ lines)
+- `ReactionRolesData.cs` - Reaction role mappings
+- `WelcomeModule.cs` - Welcome/goodbye system (300+ lines)
+- `WelcomeData.cs` - Welcome message configuration
+
+**Features:**
+- 20+ new commands added
+- Event-driven architecture (user join/leave, reactions)
+- Persistent data storage per guild
+- Permission-based command access
+- Auto-cleanup for expired mutes
+- Action history tracking
+
+---
+
 ## [v1.2.0] - Casino Module Update
 
 ### Added - Casino Games (6 Total!)
@@ -116,11 +161,11 @@
 
 ## Statistics
 
-**Total Lines of Code:** 7,500+  
-**Total Commands:** 120+  
-**Total Modules:** 10  
+**Total Lines of Code:** 9,000+  
+**Total Commands:** 140+  
+**Total Modules:** 13  
 **Casino Games:** 6 (Roulette, Craps, High-Low, War, Blackjack, Poker)  
 **Gambling Games:** 4 (Coinflip, Dice, Slots, RPS)  
 **Total Games:** 10  
-**Version:** 1.2.0  
+**Version:** 1.3.0  
 **Status:** Production Ready ✅
