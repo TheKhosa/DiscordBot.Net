@@ -1,5 +1,76 @@
 # Changelog
 
+## [v1.6.0] - Enhanced Music Module & Watch Parties
+
+### Added - Enhanced Music Experience
+
+- **Watch Party System** - Synchronized video watching with friends
+  - Commands: `!watchparty <url> [start-time]`, `!startwatchparty`
+  - Create watch parties with YouTube videos
+  - Optional countdown timer (e.g., "30s", "2m", "5m")
+  - Bot plays audio in voice while users watch together
+  - Rich embeds with video thumbnails and info
+  - Direct YouTube links for easy access
+  
+- **Enhanced Music Commands** - Better playback experience
+  - `!play <url or search>` - Now supports YouTube search queries
+  - `!nowplaying` / `!np` - Rich embed with video thumbnail
+  - `!queue` / `!q` - Beautiful queue display with thumbnails
+  - `!shuffle` - Randomize queue order
+  - `!remove <position>` - Remove specific tracks
+  - `!lyrics` - Get lyrics links for current song
+  
+- **YouTube Search Integration**
+  - Search directly via `!play <search query>`
+  - Example: `!play never gonna give you up`
+  - Powered by yt-dlp search
+  - Instant results with first match
+
+### Features Details
+
+**Watch Parties:**
+- Rich video embeds with thumbnails
+- Countdown timer support
+- Synchronized start for group watching
+- Bot plays video audio in voice channel
+- Perfect for movie nights, music videos, live streams
+- Easy-to-share YouTube links
+
+**Enhanced Music:**
+- YouTube search without URLs
+- Beautiful embeds with album art
+- Queue management (shuffle, remove, clear)
+- Now playing display with progress
+- Lyrics lookup integration
+- Better queue visualization
+
+### Technical Details
+
+**New Features:**
+- `YouTubeService.SearchAsync()` - YouTube search via yt-dlp
+- Watch party embed system
+- Countdown timer parsing (30s, 5m, 2h format)
+- Rich embed builders with thumbnails
+- Queue shuffling algorithm
+
+**Updated Files:**
+- `MusicModule.cs` - Complete rewrite (600+ lines)
+- `YouTubeService.cs` - Added search functionality
+
+**Features:**
+- 10+ enhanced/new commands
+- Rich Discord embeds throughout
+- YouTube thumbnail extraction
+- Better error handling
+- Queue position tracking
+
+### Notes
+- Discord bots cannot screenshare/Go Live (API limitation)
+- Watch parties use audio playback + manual video watching
+- Users get direct YouTube links for synchronized viewing
+
+---
+
 ## [v1.5.0] - Giveaways & Server Logging
 
 ### Added - 2 Essential Server Modules
@@ -310,13 +381,13 @@
 
 ## Statistics
 
-**Total Lines of Code:** 11,500+  
-**Total Commands:** 156+  
+**Total Lines of Code:** 12,100+  
+**Total Commands:** 166+  
 **Total Modules:** 17  
 **Casino Games:** 6 (Roulette, Craps, High-Low, War, Blackjack, Poker)  
 **Gambling Games:** 4 (Coinflip, Dice, Slots, RPS)  
 **Total Games:** 10  
 **API Integrations:** 3 (ElevenLabs, Open-Meteo, DeckOfCards)  
 **Event Subscriptions:** 15+ (Reactions, Messages, Members, Channels, Roles, Voice)  
-**Version:** 1.5.0  
+**Version:** 1.6.0  
 **Status:** Production Ready ✅

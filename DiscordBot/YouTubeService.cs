@@ -149,6 +149,42 @@ namespace DiscordBot
             return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
                    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         }
+
+        public async Task<string?> SearchAsync(string query)
+        {
+            try
+            {
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "yt-dlp",
+                        Arguments = $"\"ytsearch1:{query}\" --get-id --no-playlist",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                var output = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+                {
+                    var videoId = output.Trim();
+                    return $"https://www.youtube.com/watch?v={videoId}";
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error searching YouTube: {ex.Message}");
+                return null;
+            }
+        }
     }
 
     public class YouTubeVideo
