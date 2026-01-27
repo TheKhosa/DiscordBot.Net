@@ -1,0 +1,68 @@
+using Discord;
+using Discord.WebSocket;
+using DiscordBot;
+using System.Text.Json;
+
+class Program
+{
+    private DiscordSocketClient? _client;
+    private AudioService? _audioService;
+    private CommandHandler? _commandHandler;
+
+    public static Task Main(string[] args) => new Program().MainAsync();
+
+    public async Task MainAsync()
+    {
+        Console.WriteLine($"Bot starting... ({(Environment.Is64BitProcess ? "64-bit" : "32-bit")})");
+
+        // Load bot token from config file
+        string token;
+        try
+        {
+            var configJson = await File.ReadAllTextAsync("config.json");
+            var configData = JsonDocument.Parse(configJson);
+            token = configData.RootElement.GetProperty("BotToken").GetString() 
+                ?? throw new Exception("BotToken not found in config.json");
+        }
+        catch (FileNotFoundException)
+        {
+            Console.WriteLine("Error: config.json not found!");
+            Console.WriteLine("Please create a config.json file with your bot token.");
+            Console.WriteLine("See config.example.json for the format.");
+            return;
+        }
+
+        var config = new DiscordSocketConfig
+        {
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildVoiceStates,
+            LogLevel = LogSeverity.Info
+        };
+
+        _client = new DiscordSocketClient(config);
+        _audioService = new AudioService();
+        _commandHandler = new CommandHandler(_client, _audioService);
+
+        _client.Log += LogAsync;
+        _client.Ready += ReadyAsync;
+        _client.MessageReceived += _commandHandler.HandleMessageAsync;
+
+        await _client.LoginAsync(TokenType.Bot, token);
+        await _client.StartAsync();
+
+        // Keep bot running
+        await Task.Delay(-1);
+    }
+
+    private Task LogAsync(LogMessage msg)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{msg.Severity}] {msg.Source}: {msg.Message}");
+        return Task.CompletedTask;
+    }
+
+    private Task ReadyAsync()
+    {
+        Console.WriteLine($"✓ Bot ready! Logged in as {_client!.CurrentUser.Username}#{_client.CurrentUser.Discriminator}");
+        Console.WriteLine($"  Connected to {_client.Guilds.Count} guild(s)");
+        return Task.CompletedTask;
+    }
+}
