@@ -60,23 +60,32 @@ namespace DiscordBot.Modules
         /// </summary>
         public async Task DiscoverAndRegisterModulesAsync()
         {
+            Console.WriteLine("[ModuleManager] Starting module discovery...");
             var moduleTypes = Assembly.GetExecutingAssembly()
                 .GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && typeof(IModule).IsAssignableFrom(t));
+
+            Console.WriteLine($"[ModuleManager] Found {moduleTypes.Count()} module types");
 
             foreach (var type in moduleTypes)
             {
                 try
                 {
+                    Console.WriteLine($"[ModuleManager] Loading module: {type.Name} from {type.Namespace}");
                     var module = Activator.CreateInstance(type) as IModule;
                     if (module != null)
                     {
                         await RegisterModuleAsync(module);
                     }
+                    else
+                    {
+                        Console.WriteLine($"[ModuleManager] Failed to create instance of {type.Name}");
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[ModuleManager] Failed to load module {type.Name}: {ex.Message}");
+                    Console.WriteLine($"[ModuleManager] Stack trace: {ex.StackTrace}");
                 }
             }
         }
