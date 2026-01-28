@@ -328,7 +328,6 @@ dotnet run
 - **100+ Voices** - Multiple languages and accents
 - **Smart Caching** - Instant playback for repeated phrases
 - **Default Voice:** Rachel (nDJIICjR9zfJExIFeSCN)
-- **API Key:** Included (sk_62a928ae7d075434d6645f4b04a015a7bd34d19a3db95fec)
 
 ### Weather (v1.0.0)
 - **Open-Meteo API** - Free, no API key needed
